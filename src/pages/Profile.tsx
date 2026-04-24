@@ -82,6 +82,13 @@ export function Profile() {
         
       if (updateError) throw updateError;
       
+      // Update metadata to reflect the removal globally
+      await supabase.auth.updateUser({
+        data: {
+          avatar_url: null
+        }
+      });
+      
       setAvatarPath(null);
       setAvatarSignedUrl(null);
       setPreviewUrl(null);
@@ -139,6 +146,15 @@ export function Profile() {
         .eq('id', user.id);
 
       if (updateError) throw updateError;
+      
+      // Update auth user metadata so changes reflect in session globally
+      await supabase.auth.updateUser({
+        data: {
+           first_name: firstName,
+           last_name: lastName,
+           avatar_url: newAvatarPath
+        }
+      });
 
       setAvatarPath(newAvatarPath);
       setPreviewUrl(null);

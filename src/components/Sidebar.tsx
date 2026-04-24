@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, CheckSquare, Wallet, User as UserIcon, LogOut } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
@@ -12,13 +14,39 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const [avatarSignedUrl, setAvatarSignedUrl] = useState<string | null>(null);
+  
+  const firstName = user?.user_metadata?.first_name || 'Auto';
+  const initial = firstName.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const avatarPath = user?.user_metadata?.avatar_url;
+    if (avatarPath) {
+      const getSignedUrl = async () => {
+        const { data } = await supabase.storage
+          .from('app-files')
+          .createSignedUrl(avatarPath, 3600);
+        if (data) {
+          setAvatarSignedUrl(data.signedUrl);
+        }
+      };
+      getSignedUrl();
+    } else {
+      setAvatarSignedUrl(null);
+    }
+  }, [user?.user_metadata?.avatar_url]);
+
   return (
     <aside className="w-64 border-r border-white/5 bg-[#050505]/50 backdrop-blur-xl h-screen flex flex-col fixed left-0 top-0 z-40 hidden md:flex">
       <div className="p-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col items-center justify-center">
-            <span className="text-white font-bold text-lg leading-none">A</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col items-center justify-center overflow-hidden border border-white/10 shrink-0">
+            {avatarSignedUrl ? (
+              <img src={avatarSignedUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-lg leading-none">{initial}</span>
+            )}
           </div>
           <span className="text-white font-semibold text-xl tracking-tight">AutoChat</span>
         </div>
