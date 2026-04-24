@@ -24,22 +24,25 @@ export function Wallet() {
           setBalance(userData.balance);
         }
 
-        // Fetch history (simulated if no real DB relation)
-        // Here we just invent a few if user_tasks is empty for demo, but we try to fetch
-        const { data: _historyData } = await supabase
-          .from('user_tasks')
-          .select('*, tasks(*)')
+        // Fetch history from real transactions table
+        const { data: historyData } = await supabase
+          .from('transactions')
+          .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(10);
           
-        // For visual sake since we don't have populated tasks mapping in this isolated preview
-        setHistory([
-          { id: 1, title: 'Logic Verification', amount: 5.00, date: 'Today, 10:42 AM', type: 'earn' },
-          { id: 2, title: 'Payout to Bank ...4922', amount: -25.00, date: 'Yesterday, 3:15 PM', type: 'withdraw' },
-          { id: 3, title: 'Image Bounding Boxes', amount: 1.20, date: 'Yesterday, 11:30 AM', type: 'earn' },
-          { id: 4, title: 'Sentiment Analysis', amount: 0.50, date: 'Mon, 2:00 PM', type: 'earn' },
-        ]);
+        if (historyData) {
+          // Format date for UI
+          const formattedHistory = historyData.map(item => ({
+            ...item,
+            date: new Date(item.created_at).toLocaleDateString(undefined, {
+              year: 'numeric', month: 'short', day: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })
+          }));
+          setHistory(formattedHistory);
+        }
       };
       
       fetchWalletData();

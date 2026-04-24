@@ -1,23 +1,44 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { GlassCard } from '@/components/GlassCard';
 import { Clock, DollarSign, CheckCircle2, Zap, BrainCircuit, Type } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Standard tasks for demo purposes if DB is empty
-const DEMO_TASKS = [
-  { id: '1', title: 'Sentiment Analysis', description: 'Read short product reviews and classify them as positive, negative, or neutral.', reward: 0.50, duration: '2 mins', difficulty: 'Easy', icon: Type },
-  { id: '2', title: 'Image Bounding Boxes', description: 'Draw bounding boxes around vehicles in street scenes to train autonomous driving models.', reward: 1.20, duration: '5 mins', difficulty: 'Medium', icon: Zap },
-  { id: '3', title: 'Audio Transcription', description: 'Listen to short AI voice generations and correct the generated text transcripts.', reward: 2.50, duration: '10 mins', difficulty: 'Medium', icon: BrainCircuit },
-  { id: '4', title: 'Logic Verification', description: 'Review AI-generated code snippets and verify them for logical consistency and bugs.', reward: 5.00, duration: '15 mins', difficulty: 'Hard', icon: Zap },
-];
+// Fallback if DB is empty, but we fetch directly from Supabase 
+const ICON_MAP: Record<string, React.ElementType> = {
+  Type,
+  Zap,
+  BrainCircuit,
+  Clock,
+  DollarSign,
+  CheckCircle2
+};
 
 export function Tasks() {
   const { user } = useAuth();
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState<string | null>(null);
   const [userTasks, setUserTasks] = useState<Record<string, string>>({});
+  const [tasksList, setTasksList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const { data } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) {
+        setTasksList(data);
+      } else {
+        // Fallback to demo data if the table is empty for previewing purposes
+        setTasksList([
+          { id: '1', title: 'Sentiment Analysis', description: 'Read short product reviews and classify them as positive, negative, or neutral.', reward: 0.50, duration: '2 mins', difficulty: 'Easy', icon: 'Type' },
+          { id: '2', title: 'Image Bounding Boxes', description: 'Draw bounding boxes around vehicles in street scenes to train autonomous driving models.', reward: 1.20, duration: '5 mins', difficulty: 'Medium', icon: 'Zap' },
+          { id: '3', title: 'Audio Transcription', description: 'Listen to short AI voice generations and correct the generated text transcripts.', reward: 2.50, duration: '10 mins', difficulty: 'Medium', icon: 'BrainCircuit' },
+          { id: '4', title: 'Logic Verification', description: 'Review AI-generated code snippets and verify them for logical consistency and bugs.', reward: 5.00, duration: '15 mins', difficulty: 'Hard', icon: 'Zap' },
+        ]);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -35,7 +56,7 @@ export function Tasks() {
     fetchUserTasks();
   }, [user]);
 
-  const handleTaskAction = async (task: typeof DEMO_TASKS[0]) => {
+  const handleTaskAction = async (task: any) => {
     if (!user) return;
     
     setLoading(task.id);
@@ -69,6 +90,16 @@ export function Tasks() {
             .from('users')
             .update({ balance: userData.balance + task.reward })
             .eq('id', user.id);
+            
+          // Record the transaction
+          await supabase
+            .from('transactions')
+            .insert({
+              user_id: user.id,
+              title: task.title,
+              amount: task.reward,
+              type: 'earn'
+            });
         }
         
         setUserTasks(prev => ({ ...prev, [task.id]: 'completed' }));
@@ -80,7 +111,7 @@ export function Tasks() {
     }
   };
 
-  const filteredTasks = DEMO_TASKS.filter(t => filter === 'All' || t.difficulty === filter);
+  const filteredTasks = tasksList.filter(t => filter === 'All' || t.difficulty === filter);
 
   return (
     <div className="space-y-8 pb-12 font-sans">
@@ -125,7 +156,7 @@ export function Tasks() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTasks.map((task, i) => {
-          const Icon = task.icon;
+          const Icon = ICON_MAP[task.icon as string] || CheckCircle2;
           const isCompleting = loading === task.id;
           const status = userTasks[task.id];
           
