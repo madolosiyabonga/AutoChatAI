@@ -17,41 +17,62 @@ export function Tasks() {
   const { user } = useAuth();
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState<string | null>(null);
+  const [userTasks, setUserTasks] = useState<Record<string, string>>({});
 
-  const handleCompleteTask = async (task: any) => {
+  useEffect(() => {
+    if (!user) return;
+    const fetchUserTasks = async () => {
+      const { data } = await supabase
+        .from('user_tasks')
+        .select('task_id, status')
+        .eq('user_id', user.id);
+      
+      if (data) {
+        const mapping = data.reduce((acc, curr) => ({ ...acc, [curr.task_id]: curr.status }), {});
+        setUserTasks(mapping);
+      }
+    };
+    fetchUserTasks();
+  }, [user]);
+
+  const handleTaskAction = async (task: typeof DEMO_TASKS[0]) => {
     if (!user) return;
     
     setLoading(task.id);
+    const status = userTasks[task.id];
     
     try {
-      // 1. Record completed task
-      await supabase.from('user_tasks').insert({
-        user_id: user.id,
-        task_id: task.id,
-        status: 'completed'
-      });
-
-      // 2. Fetch current balance
-      const { data: userData } = await supabase
-        .from('users')
-        .select('balance')
-        .eq('id', user.id)
-        .single();
-
-      // 3. Update balance
-      if (userData) {
+      if (!status) {
+        // Start task
+        await supabase.from('user_tasks').insert({
+          user_id: user.id,
+          task_id: task.id,
+          status: 'active'
+        });
+        setUserTasks(prev => ({ ...prev, [task.id]: 'active' }));
+      } else if (status === 'active') {
+        // Complete Task
         await supabase
+          .from('user_tasks')
+          .update({ status: 'completed' })
+          .eq('user_id', user.id)
+          .eq('task_id', task.id);
+
+        const { data: userData } = await supabase
           .from('users')
-          .update({ balance: userData.balance + task.reward })
-          .eq('id', user.id);
+          .select('balance')
+          .eq('id', user.id)
+          .single();
+
+        if (userData) {
+          await supabase
+            .from('users')
+            .update({ balance: userData.balance + task.reward })
+            .eq('id', user.id);
+        }
+        
+        setUserTasks(prev => ({ ...prev, [task.id]: 'completed' }));
       }
-      
-      // Simulate network delay for UX
-      await new Promise(r => setTimeout(r, 800));
-      
-      // In a real app we'd remove it from the list or show completed state
-      alert(`Successfully earned $${task.reward.toFixed(2)}!`);
-      
     } catch (error) {
       console.error(error);
     } finally {
@@ -106,6 +127,7 @@ export function Tasks() {
         {filteredTasks.map((task, i) => {
           const Icon = task.icon;
           const isCompleting = loading === task.id;
+          const status = userTasks[task.id];
           
           return (
             <motion.div
@@ -135,12 +157,19 @@ export function Tasks() {
                 </div>
 
                 <button
-                  onClick={() => handleCompleteTask(task)}
-                  disabled={isCompleting}
-                  className="w-full relative overflow-hidden group/btn bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 rounded-xl transition-all disabled:opacity-50"
+                  onClick={() => handleTaskAction(task)}
+                  disabled={isCompleting || status === 'completed'}
+                  className={`w-full relative overflow-hidden group/btn border font-medium py-3 rounded-xl transition-all disabled:opacity-50 ${
+                    status === 'completed'
+                      ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                      : status === 'active'
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20'
+                      : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
+                  }`}
                 >
                   <span className={`flex items-center justify-center gap-2 ${isCompleting ? 'opacity-0' : 'opacity-100'}`}>
-                    <CheckCircle2 className="w-4 h-4" /> Start Task
+                    <CheckCircle2 className="w-4 h-4" /> 
+                    {status === 'completed' ? 'Completed' : status === 'active' ? 'Complete Task' : 'Start Task'}
                   </span>
                   {isCompleting && (
                     <div className="absolute inset-0 flex items-center justify-center">

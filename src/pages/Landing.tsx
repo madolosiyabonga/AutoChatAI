@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Terminal, Activity, Zap, Target, Lock, Brain, CornerDownRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Landing() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user hits the landing page but is logged in, Auto-redirect them to the dashboard 
+    // to match standard SaaS behavior requested by user.
+    if (session && !loading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [session, loading, navigate]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const { clientX, clientY, currentTarget } = e;

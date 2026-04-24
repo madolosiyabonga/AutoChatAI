@@ -37,14 +37,17 @@ export function Signup() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      // Redirect to login page and pass the email via router state
+    } else if (!data.session) {
+      // Redirect to login page and pass the email via router state for confirmation
       navigate('/login', { 
         state: { 
           signupEmail: email, 
           signupSuccess: true 
         } 
       });
+    } else {
+      // If a session was created immediately, go to dashboard
+      navigate('/dashboard');
     }
   };
 

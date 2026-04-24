@@ -42,7 +42,7 @@ export function Login() {
       setError("Unable to establish a session. Please confirm your email if necessary.");
       setLoading(false);
     } else {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 

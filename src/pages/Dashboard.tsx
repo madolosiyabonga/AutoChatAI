@@ -19,12 +19,15 @@ export function Dashboard() {
       const fetchBalance = async () => {
         const { data } = await supabase
           .from('users')
-          .select('balance')
+          .select('balance, first_name')
           .eq('id', user.id)
           .single();
           
         if (data) {
-          setBalance(data.balance);
+          setBalance(data.balance || 0);
+          if (data.first_name) {
+            setFirstName(data.first_name);
+          }
         }
       };
       fetchBalance();
