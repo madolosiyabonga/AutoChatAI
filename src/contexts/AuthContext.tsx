@@ -25,9 +25,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session error:', error.message);
+        if (error.message.includes('Refresh Token Not Found')) {
+           // If the token is stuck, a signOut forces the local state to clear.
+           // Catching the error of signOut in case it fails without a session.
+           supabase.auth.signOut().catch(console.error);
+        }
+      }
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((err) => {
+      console.error('Session exception:', err);
+      // Fallback
       setLoading(false);
     });
 
@@ -44,7 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      console.error('Error during sign out:', err);
+      // Clear token from local storage directly if backend request fails
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      }
+      setSession(null);
+      setUser(null);
+      navigate('/');
+    }
   };
 
   return (
