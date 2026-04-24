@@ -10,28 +10,62 @@ export function Dashboard() {
   const { user } = useAuth();
   const [balance, setBalance] = useState(0);
   const [firstName, setFirstName] = useState('');
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
   
   useEffect(() => {
-    if (user) {
-      // In a real app we'd fetch from users table, here we use user.user_metadata if available
-      setFirstName(user.user_metadata?.first_name || user.email?.split('@')[0] || 'User');
-      
-      const fetchBalance = async () => {
-        const { data } = await supabase
-          .from('users')
-          .select('balance, first_name')
-          .eq('id', user.id)
-          .single();
-          
-        if (data) {
-          setBalance(data.balance || 0);
-          if (data.first_name) {
-            setFirstName(data.first_name);
-          }
+    if (!user) return;
+
+    // In a real app we'd fetch from users table, here we use user.user_metadata if available
+    setFirstName(user.user_metadata?.first_name || user.email?.split('@')[0] || 'User');
+    
+    const fetchBalance = async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('balance, first_name')
+        .eq('id', user.id)
+        .single();
+        
+      if (data) {
+        setBalance(data.balance || 0);
+        if (data.first_name) {
+          setFirstName(data.first_name);
         }
-      };
-      fetchBalance();
-    }
+      }
+    };
+
+    const fetchTaskCount = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
+      
+      const { count, error } = await supabase
+        .from('user_tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', currentUser.id)
+        .eq('status', 'completed');
+        
+      if (!error && count !== null) {
+        setCompletedTasksCount(count);
+      }
+    };
+    
+    fetchBalance();
+    fetchTaskCount();
+
+    // Subscribe to changes in user_tasks table
+    const subscription = supabase
+      .channel('public:user_tasks')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_tasks', filter: `user_id=eq.${user.id}` },
+        () => {
+          fetchTaskCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, [user]);
 
   return (
@@ -97,7 +131,7 @@ export function Dashboard() {
             <div className="flex-1 flex flex-col justify-center gap-4">
               <div className="flex justify-between text-sm font-medium">
                 <span className="text-white/60">Progress</span>
-                <span className="text-white">3 / 10 Tasks</span>
+                <span className="text-white">{completedTasksCount} / 10 Tasks</span>
               </div>
               
               {/* Progress Bar */}
@@ -105,12 +139,12 @@ export function Dashboard() {
                 <motion.div 
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                   initial={{ width: 0 }}
-                  animate={{ width: '30%' }}
+                  animate={{ width: `${Math.min(100, (completedTasksCount / 10) * 100)}%` }}
                   transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
                 />
               </div>
               
-              <p className="text-xs text-white/40 mt-2">Complete 7 more tasks to unlock today's bonus multiplier.</p>
+              <p className="text-xs text-white/40 mt-2">Complete {Math.max(0, 10 - completedTasksCount)} more tasks to unlock today's bonus multiplier.</p>
             </div>
           </GlassCard>
         </motion.div>
