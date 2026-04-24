@@ -172,14 +172,14 @@ export function Profile() {
     <div className="max-w-3xl mx-auto space-y-8 font-sans pb-12">
       <header>
         <motion.h1 
-          className="text-3xl font-bold tracking-tight mb-2"
+          className="text-[26px] font-bold tracking-tight mb-2 text-slate-900 dark:text-white"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
           Profile
         </motion.h1>
         <motion.p 
-          className="text-white/50"
+          className="text-slate-500 dark:text-white/50"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
@@ -203,7 +203,7 @@ export function Profile() {
                  {(previewUrl || avatarSignedUrl) ? (
                     <img src={previewUrl || avatarSignedUrl as string} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-3xl font-bold text-white">{getInitials()}</span>
+          <span className="text-3xl font-bold text-white dark:text-white">{getInitials()}</span>
                   )}
                   
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -231,8 +231,8 @@ export function Profile() {
             </div>
 
             <div className="text-center sm:text-left flex-1">
-              <h2 className="text-2xl font-bold text-white mb-1">{firstName} {lastName}</h2>
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-white/50 mb-4">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{firstName} {lastName}</h2>
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-slate-500 dark:text-white/50 mb-4">
                 <Mail className="w-4 h-4" />
                 <span>{user?.email}</span>
               </div>
@@ -254,30 +254,30 @@ export function Profile() {
 
           {/* Details Section */}
           <div className="p-8 space-y-6">
-            <h3 className="text-lg font-semibold text-white/90">Personal Information</h3>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white/90">Personal Information</h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs uppercase tracking-wider font-semibold text-white/40 mb-2">First Name</label>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-white/40 mb-2">First Name</label>
                 <input 
                   type="text" 
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-black/40 border border-white/10 text-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
+                  className="w-full h-12 px-4 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase tracking-wider font-semibold text-white/40 mb-2">Last Name</label>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-white/40 mb-2">Last Name</label>
                 <input 
                   type="text" 
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-black/40 border border-white/10 text-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
+                  className="w-full h-12 px-4 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs uppercase tracking-wider font-semibold text-white/40 mb-2">Email Address</label>
-                <div className="h-12 px-4 rounded-xl bg-black/40 border border-white/5 flex items-center text-white/50 cursor-not-allowed">
+                <label className="block text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-white/40 mb-2">Email Address</label>
+                <div className="h-12 px-4 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/5 flex items-center text-slate-600 dark:text-white/50 cursor-not-allowed">
                   {user?.email}
                 </div>
               </div>

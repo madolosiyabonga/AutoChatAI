@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAuth } from '@/contexts/AuthContext';
-import { Play, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
+import { Play, TrendingUp, CheckCircle2, Clock, Activity, BarChart2, DollarSign, ArrowRight, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
@@ -11,11 +11,11 @@ export function Dashboard() {
   const [balance, setBalance] = useState(0);
   const [firstName, setFirstName] = useState('');
   const [completedTasksCount, setCompletedTasksCount] = useState(0);
+  const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   
   useEffect(() => {
     if (!user) return;
 
-    // In a real app we'd fetch from users table, here we use user.user_metadata if available
     setFirstName(user.user_metadata?.first_name || user.email?.split('@')[0] || 'User');
     
     const fetchBalance = async () => {
@@ -51,7 +51,6 @@ export function Dashboard() {
     fetchBalance();
     fetchTaskCount();
 
-    // Subscribe to changes in user_tasks table
     const subscription = supabase
       .channel('public:user_tasks')
       .on(
@@ -68,154 +67,224 @@ export function Dashboard() {
     };
   }, [user]);
 
+  // Derived mock balances based on main balance to showcase multi-wallet interface
+  const pendingBalance = balance > 0 ? (balance * 0.1).toFixed(2) : '0.00';
+  const withdrawableBalance = balance > 0 ? (balance * 0.9).toFixed(2) : '0.00';
+
   return (
-    <div className="space-y-8 font-sans pb-12">
-      <header>
-        <motion.h1 
-          className="text-3xl font-bold tracking-tight mb-2"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+    <div className="space-y-6 font-sans pb-12 transition-colors">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <motion.h1 
+            className="text-[26px] font-bold tracking-tight mb-1 text-slate-900 dark:text-white"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            Overview
+          </motion.h1>
+          <motion.p 
+            className="text-slate-500 dark:text-slate-400 text-[13px]"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            Welcome back, {firstName}. Here is your performance summary.
+          </motion.p>
+        </div>
+        
+        {/* Timeframe Toggle */}
+        <motion.div 
+          className="flex bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-black/5 dark:border-white/5 self-start md:self-auto"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
         >
-          Welcome back, {firstName}
-        </motion.h1>
-        <motion.p 
-          className="text-white/50"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          Here's what's happening with your account today.
-        </motion.p>
+          {['daily', 'weekly', 'monthly'].map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setTimeframe(tf as any)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium capitalize transition-all ${timeframe === tf ? 'bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              {tf}
+            </button>
+          ))}
+        </motion.div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Balance Card */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        {/* Earnings Card (Main) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="md:col-span-2"
+          className="md:col-span-8 flex flex-col"
         >
-          <GlassCard glow="blue" className="p-8 h-full flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-12">
+          <GlassCard className="p-6 h-full flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-6">
               <div>
-                <p className="text-white/60 font-medium mb-1 uppercase tracking-wider text-xs">Total Earnings</p>
-                <div className="text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                  ${balance.toFixed(2)}
+                <p className="text-slate-500 dark:text-slate-400 font-medium mb-1 tracking-tight text-[13px]">Total Earnings</p>
+                <div className="text-[28px] font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  ${balance.toFixed(2)} USD
+                  <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full font-medium ml-2">+12.5%</span>
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                <TrendingUp className="text-blue-400 w-6 h-6" />
+              <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                <BarChart2 className="text-blue-500 w-5 h-5" strokeWidth={1.5} />
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <Link to="/tasks" className="bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-white/90 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                Start Earning
-              </Link>
-              <Link to="/wallet" className="px-6 py-3 rounded-full font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+            {/* Visualizer Mock */}
+            <div className="flex-1 flex items-end gap-2 h-32 mt-4 opacity-80 pl-2">
+               {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
+                 <div key={i} className="flex-1 bg-blue-100 dark:bg-blue-900/30 rounded-t-sm relative group transition-all duration-300 hover:bg-blue-200 dark:hover:bg-blue-800/50" style={{ height: `${h}%` }}>
+                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                     ${(h * 0.4).toFixed(1)}
+                   </div>
+                 </div>
+               ))}
+            </div>
+
+            <div className="flex items-center gap-3 mt-6 border-t border-black/5 dark:border-white/5 pt-6">
+              <div className="flex-1">
+                <p className="text-[12px] text-slate-500 dark:text-slate-400">Pending</p>
+                <p className="font-semibold text-slate-900 dark:text-white text-[14px]">${pendingBalance}</p>
+              </div>
+              <div className="w-[1px] h-8 bg-black/5 dark:bg-white/5"></div>
+              <div className="flex-1">
+                <p className="text-[12px] text-slate-500 dark:text-slate-400">Withdrawable</p>
+                <p className="font-semibold text-slate-900 dark:text-white text-[14px]">${withdrawableBalance}</p>
+              </div>
+              <Link to="/wallet" className="px-4 py-2 rounded-[10px] text-[13px] font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors shadow-sm ml-auto">
                 Withdraw
               </Link>
             </div>
           </GlassCard>
         </motion.div>
 
-        {/* Daily Goal Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <GlassCard className="p-8 h-full flex flex-col">
-            <h3 className="font-semibold text-lg mb-6">Daily Goal</h3>
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <div className="flex justify-between text-sm font-medium">
-                <span className="text-white/60">Progress</span>
-                <span className="text-white">{completedTasksCount} / 10 Tasks</span>
+        {/* Task Progress & AI Suggestion Block */}
+        <div className="md:col-span-4 flex flex-col gap-6">
+          {/* Daily Goal Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex-1"
+          >
+            <GlassCard className="p-6 h-full flex flex-col">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="font-semibold text-[15px] text-slate-900 dark:text-white tracking-tight">Daily Goal</h3>
+                <CheckCircle2 className="w-5 h-5 text-blue-500" strokeWidth={1.5} />
               </div>
               
-              {/* Progress Bar */}
-              <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
-                <motion.div 
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, (completedTasksCount / 10) * 100)}%` }}
-                  transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                />
+              <div className="flex-1 flex flex-col justify-center gap-4">
+                <div className="flex justify-between text-[13px] font-medium">
+                  <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                  <span className="text-slate-900 dark:text-white">{completedTasksCount} / 10 Tasks</span>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden relative">
+                  <motion.div 
+                    className="absolute inset-y-0 left-0 bg-blue-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (completedTasksCount / 10) * 100)}%` }}
+                    transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+                
+                <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-1">
+                  Complete {Math.max(0, 10 - completedTasksCount)} more tasks for bonus multiplier.
+                </p>
+                <Link to="/tasks" className="mt-2 w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-900 dark:text-white rounded-[10px] text-[13px] font-medium transition-colors text-center border border-black/5 dark:border-white/5">
+                  View Tasks
+                </Link>
               </div>
-              
-              <p className="text-xs text-white/40 mt-2">Complete {Math.max(0, 10 - completedTasksCount)} more tasks to unlock today's bonus multiplier.</p>
-            </div>
-          </GlassCard>
-        </motion.div>
+            </GlassCard>
+          </motion.div>
+
+          {/* AI Suggestion Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <GlassCard className="p-5 flex gap-4 items-center bg-gradient-to-r from-indigo-50/50 to-blue-50/50 dark:from-indigo-900/10 dark:to-blue-900/10 border-indigo-100 dark:border-indigo-500/20">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center shrink-0">
+                <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400" strokeWidth={1.5} />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-[14px] font-semibold text-slate-900 dark:text-white">AI Suggestion</h4>
+                <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Focus on transcription tasks today for a 20% boost.</p>
+              </div>
+            </GlassCard>
+          </motion.div>
+        </div>
+
       </div>
 
-      {/* Recommended Features */}
-      <h2 className="text-xl font-semibold mt-10 mb-6">Recommended for you</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         
-        {/* AI Interview */}
+        {/* Activity Feed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="flex flex-col"
         >
-          <GlassCard glow="purple" className="p-6 relative group overflow-hidden">
-            <div className="absolute right-[-40px] top-[-40px] w-32 h-32 bg-purple-500/20 blur-3xl group-hover:bg-purple-500/40 transition-colors" />
-            <div className="flex items-start justify-between relative z-10 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
-                <Play className="text-purple-400 w-6 h-6 ml-1" />
-              </div>
-              <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold border border-purple-500/30">
-                HIGH PAYING
-              </span>
+          <h2 className="text-[16px] font-semibold mb-4 text-slate-900 dark:text-white">Recent Activity</h2>
+          <GlassCard className="flex-1 p-0 overflow-hidden">
+            <div className="divide-y divide-black/5 dark:divide-white/5">
+              {[
+                { id: 1, action: 'Completed Image Labeling', time: '10 mins ago', status: 'Approved', amount: '+$0.80' },
+                { id: 2, action: 'Withdrawal Requested', time: '2 hrs ago', status: 'Pending', amount: '-$50.00' },
+                { id: 3, action: 'Completed Audio Transcription', time: '5 hrs ago', status: 'Approved', amount: '+$2.50' },
+                { id: 4, action: 'Daily Login Bonus', time: '8 hrs ago', status: 'Added', amount: '+$0.10' }
+              ].map((activity) => (
+                <div key={activity.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${activity.status === 'Approved' || activity.status === 'Added' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                    <div>
+                      <p className="text-[13px] font-medium text-slate-900 dark:text-white">{activity.action}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">{activity.time}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-[13px] font-semibold ${activity.amount.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>{activity.amount}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{activity.status}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <h3 className="text-xl font-bold mb-2">AI Interview</h3>
-            <p className="text-white/50 text-sm mb-6 leading-relaxed">
-              Participate in specialized AI voice conversations to help train next-gen conversational models.
-            </p>
-            <div className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/5">
-              <div>
-                <p className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-1">Reward</p>
-                <p className="font-bold text-lg text-purple-400">$15.00 <span className="text-sm font-normal text-white/40">/ hr</span></p>
-              </div>
-              <button className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors text-sm border border-purple-500/30">
-                Join Waitlist
-              </button>
+            <div className="p-3 border-t border-black/5 dark:border-white/5 text-center">
+              <button className="text-[12px] font-medium text-blue-500 hover:text-blue-600 transition-colors">View All Activity</button>
             </div>
           </GlassCard>
         </motion.div>
 
-        {/* Quick Task */}
+        {/* Tutorial Locked Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          className="flex flex-col"
         >
-          <GlassCard className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-                <CheckCircle2 className="text-blue-400 w-6 h-6" />
-              </div>
-              <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 text-white/70 text-xs font-semibold border border-white/10">
-                <Clock className="w-3 h-3" /> 2 mins
-              </span>
+          <h2 className="text-[16px] font-semibold mb-4 text-slate-900 dark:text-white">Premium Tasks</h2>
+          <GlassCard className="flex-1 p-6 flex flex-col justify-center items-center text-center bg-slate-50/50 dark:bg-zinc-900/50 border-dashed border-2 border-slate-200 dark:border-white/10 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center mb-4 relative z-10">
+              <Lock className="w-6 h-6 text-slate-500 dark:text-slate-400" strokeWidth={1.5} />
             </div>
-            <h3 className="text-xl font-bold mb-2">Image Classification</h3>
-            <p className="text-white/50 text-sm mb-6 leading-relaxed">
-              Help categorize images to improve vision models. Fast and simple tasks to complete in your downtime.
+            <h3 className="text-[16px] font-semibold mb-2 text-slate-900 dark:text-white relative z-10">Advanced Audio Analysis</h3>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-6 max-w-xs relative z-10">
+              Complete the Tier 2 Tutorial to unlock these high-paying tasks. Earn up to $25/hr.
             </p>
-            <div className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/5">
-              <div>
-                <p className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-1">Reward</p>
-                <p className="font-bold text-lg text-blue-400">$0.80 <span className="text-sm font-normal text-white/40">/ task</span></p>
-              </div>
-              <Link to="/tasks" className="bg-white text-black px-4 py-2 rounded-lg font-medium transition-colors text-sm">
-                Start Now
-              </Link>
-            </div>
+            <button className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded-[10px] text-[13px] font-semibold transition-colors flex items-center gap-2 relative z-10 shadow-sm">
+              Start Tutorial <ArrowRight className="w-4 h-4" />
+            </button>
           </GlassCard>
         </motion.div>
+
       </div>
     </div>
   );

@@ -3,7 +3,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'motion/react';
 import { GlassCard } from '@/components/GlassCard';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function Signup() {
   const [firstName, setFirstName] = useState('');
@@ -14,6 +15,7 @@ export function Signup() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,20 +60,27 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050505] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans transition-colors">
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-500/10 blur-[150px] pointer-events-none rounded-full" />
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500/10 blur-[150px] pointer-events-none rounded-full" />
       
+      <button 
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm z-50"
+      >
+        {isDark ? <Sun className="w-5 h-5 text-slate-300" /> : <Moon className="w-5 h-5 text-slate-600" />}
+      </button>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <Link to="/" className="flex justify-center items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col items-center justify-center">
+        <Link to="/" className="flex justify-center items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
+          <div className="w-10 h-10 rounded-[12px] bg-blue-500 flex flex-col items-center justify-center shadow-sm">
             <span className="text-white font-bold text-xl tracking-tight leading-none">A</span>
           </div>
         </Link>
-        <h2 className="text-center text-3xl font-bold tracking-tight text-white mb-2">
+        <h2 className="text-center text-[28px] font-bold tracking-tight text-slate-900 dark:text-white mb-2">
           Create an account
         </h2>
-        <p className="text-center text-sm text-white/50 mb-8">
+        <p className="text-center text-[15px] text-slate-500 dark:text-white/50 mb-8">
           Start earning money completing AI tasks today.
         </p>
 
@@ -80,59 +89,59 @@ export function Signup() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <GlassCard glow="purple" className="p-8">
+          <GlassCard className="p-8 shadow-sm">
             <form className="space-y-4" onSubmit={handleSignup}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">First Name</label>
+                  <label className="block text-[13px] font-semibold text-slate-700 dark:text-white/70 mb-2">First Name</label>
                   <input
                     type="text"
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-mono text-sm"
+                    className="w-full px-4 py-3 bg-slate-100 dark:bg-black/40 border border-transparent dark:border-white/10 rounded-[12px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all text-[15px] shadow-sm inset-0"
                     placeholder="John"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Last Name</label>
+                  <label className="block text-[13px] font-semibold text-slate-700 dark:text-white/70 mb-2">Last Name</label>
                   <input
                     type="text"
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-mono text-sm"
+                    className="w-full px-4 py-3 bg-slate-100 dark:bg-black/40 border border-transparent dark:border-white/10 rounded-[12px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all text-[15px] shadow-sm inset-0"
                     placeholder="Doe"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
+                <label className="block text-[13px] font-semibold text-slate-700 dark:text-white/70 mb-2">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-mono text-sm"
+                  className="w-full px-4 py-3 bg-slate-100 dark:bg-black/40 border border-transparent dark:border-white/10 rounded-[12px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all text-[15px] shadow-sm inset-0"
                   placeholder="name@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
+                <label className="block text-[13px] font-semibold text-slate-700 dark:text-white/70 mb-2">Password</label>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-mono text-sm"
+                  className="w-full px-4 py-3 bg-slate-100 dark:bg-black/40 border border-transparent dark:border-white/10 rounded-[12px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all text-[15px] shadow-sm inset-0"
                   placeholder="••••••••"
                 />
               </div>
 
               {error && (
-                <div className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+                <div className="text-red-500 dark:text-red-400 text-[13px] bg-red-50 dark:bg-red-400/10 p-3 rounded-[10px] border border-red-100 dark:border-red-400/20 font-medium">
                   {error}
                 </div>
               )}
@@ -140,26 +149,26 @@ export function Signup() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-black bg-white hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 transition-all disabled:opacity-50 mt-2"
+                className="w-full flex justify-center items-center py-3 px-4 rounded-[12px] shadow-sm text-[15px] font-semibold text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 mt-2"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create account'}
               </button>
             </form>
 
-            <div className="mt-6">
+            <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
+                  <div className="w-full border-t border-slate-200 dark:border-white/10" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#0d0d0d] text-white/50 rounded-full">Or continue with</span>
+                  <span className="px-3 bg-white dark:bg-[#1C1C1E] text-slate-500 dark:text-white/50 text-[13px]">Or continue with</span>
                 </div>
               </div>
 
               <div className="mt-6">
                 <button
                   onClick={handleGoogleSignup}
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white hover:bg-white/10 transition-all"
+                  className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-[12px] border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-[15px] font-medium text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -172,9 +181,9 @@ export function Signup() {
               </div>
             </div>
             
-            <p className="mt-8 text-center text-sm text-white/50">
+            <p className="mt-8 text-center text-[14px] text-slate-500 dark:text-white/50">
               Already have an account?{' '}
-              <Link to="/login" className="text-white hover:text-purple-400 font-medium transition-colors">
+              <Link to="/login" className="text-blue-500 hover:text-blue-600 font-semibold transition-colors">
                 Log in
               </Link>
             </p>

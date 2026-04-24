@@ -10,22 +10,21 @@ interface GlassCardProps extends HTMLMotionProps<"div"> {
 
 export function GlassCard({ children, className, glow = 'none', ...props }: GlassCardProps) {
   const glowStyles = {
-    blue: 'shadow-[0_0_40px_rgba(59,130,246,0.15)] border-blue-500/20',
-    purple: 'shadow-[0_0_40px_rgba(168,85,247,0.15)] border-purple-500/20',
-    success: 'shadow-[0_0_40px_rgba(34,197,94,0.15)] border-green-500/20',
-    none: 'shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-white/10',
+    blue: 'dark:shadow-[0_0_40px_rgba(10,132,255,0.1)] border-blue-500/20',
+    purple: 'dark:shadow-[0_0_40px_rgba(191,90,242,0.1)] border-purple-500/20',
+    success: 'dark:shadow-[0_0_40px_rgba(48,209,88,0.1)] border- hijau-500/20',
+    none: 'shadow-sm border-black/5 dark:border-white/5',
   };
 
   return (
     <motion.div
       className={cn(
-        'relative bg-white/5 backdrop-blur-2xl border rounded-2xl overflow-hidden',
+        'relative bg-white dark:bg-[#1C1C1E] border rounded-[20px] overflow-hidden transition-colors',
         glowStyles[glow],
         className
       )}
       {...props}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       <div className="relative z-10">{children}</div>
     </motion.div>
   );
