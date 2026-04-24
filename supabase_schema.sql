@@ -83,6 +83,41 @@ CREATE POLICY "Anyone can view tasks"
 ON tasks FOR SELECT
 USING (true);
 
+-- 4. Create NOTES table for AI Notes
+CREATE TABLE notes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own notes"
+ON notes FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "limit_free_users_notes"
+ON notes FOR INSERT
+TO authenticated
+WITH CHECK (
+  auth.uid() = user_id AND (
+    (
+      SELECT COUNT(*) FROM notes
+      WHERE user_id = auth.uid()
+    ) < 3
+  )
+);
+
+CREATE POLICY "Users can update their own notes"
+ON notes FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own notes"
+ON notes FOR DELETE
+USING (auth.uid() = user_id);
+
 -- 3. The USER_TASKS table already exists in your logic, but here is the definition just in case:
 CREATE TABLE IF NOT EXISTS user_tasks (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,

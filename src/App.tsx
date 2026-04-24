@@ -13,6 +13,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Tasks } from './pages/Tasks';
 import { Wallet } from './pages/Wallet';
 import { Profile } from './pages/Profile';
+import { Notes } from './pages/Notes';
 
 export default function App() {
   if (!isSupabaseConfigured) {
@@ -30,6 +31,7 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tasks" element={<Tasks />} />
+            <Route path="/notes" element={<Notes />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

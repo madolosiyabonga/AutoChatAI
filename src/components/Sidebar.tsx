@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, CheckSquare, Wallet, User as UserIcon, LogOut } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Wallet, User as UserIcon, LogOut, FileText } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Tasks', path: '/tasks', icon: CheckSquare },
+  { name: 'Notes', path: '/notes', icon: FileText },
   { name: 'Wallet', path: '/wallet', icon: Wallet },
   { name: 'Profile', path: '/profile', icon: UserIcon },
 ];
